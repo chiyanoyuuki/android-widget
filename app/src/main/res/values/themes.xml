@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Style des en-têtes de jours (L M M J V S D) -->
+    <style name="WeekDay">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/weekday</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Thème appli (une seule petite Activity d'aide) -->
+    <style name="Theme.PlanningWidget" parent="@android:style/Theme.Material.Light.NoActionBar" />
+</resources>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="10dp">
+
+    <!-- En-tête : flèche précédente | mois année | flèche suivante -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:id="@+id/nav_prev"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="◀"
+            android:textColor="@color/title"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/month_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/nav_next"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="▶"
+            android:textColor="@color/title"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Jours de la semaine (lundi en premier, comme l'app) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="4dp">
+
+        <TextView style="@style/WeekDay" android:text="L" />
+        <TextView style="@style/WeekDay" android:text="M" />
+        <TextView style="@style/WeekDay" android:text="M" />
+        <TextView style="@style/WeekDay" android:text="J" />
+        <TextView style="@style/WeekDay" android:text="V" />
+        <TextView style="@style/WeekDay" android:text="S" />
+        <TextView style="@style/WeekDay" android:text="D" />
+    </LinearLayout>
+
+    <!-- Grille des jours -->
+    <GridView
+        android:id="@+id/calendar_grid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:numColumns="7"
+        android:stretchMode="columnWidth"
+        android:horizontalSpacing="3dp"
+        android:verticalSpacing="3dp"
+        android:gravity="center"
+        android:listSelector="@android:color/transparent" />
+
+    <!-- Affiché si aucune donnée n'a pu être chargée -->
+    <TextView
+        android:id="@+id/calendar_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/no_data"
+        android:textColor="@color/weekday"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</LinearLayout>

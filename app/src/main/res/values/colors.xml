@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thème de l'app (variables CSS principale / required) -->
+    <color name="principale">#AA82BA</color>
+    <color name="required">#87528E</color>
+
+    <!-- Carte du widget -->
+    <color name="card_bg">#F4F1E9F6</color>      <!-- lavande très clair -->
+    <color name="card_stroke">#87528E</color>
+    <color name="title">#5A2E63</color>
+    <color name="weekday">#80503A57</color>
+    <color name="today_ring">#7B1FA2</color>
+
+    <!-- Icône -->
+    <color name="ic_launcher_background">#87528E</color>
+</resources>
