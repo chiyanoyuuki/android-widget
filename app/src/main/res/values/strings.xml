@@ -6,5 +6,7 @@
     <string name="no_data">Connexion impossible.\nOuvre l\'app une fois pour charger le planning.</string>
     <string name="open_site">Ouvrir l\'intra</string>
     <string name="force_refresh">Forcer la mise à jour du widget</string>
+    <string name="test_connection">Tester la connexion à l\'API</string>
+    <string name="test_running">Test en cours…</string>
     <string name="main_help">Ajoute le widget « Planning Cloé » sur ton écran d\'accueil.\n\n• Les jours colorés = indisponibles (mêmes couleurs que l\'intra).\n• Les flèches ◀ ▶ changent de mois.\n• Tape sur le mois pour revenir au mois courant et rafraîchir.\n• Tape sur un jour pour ouvrir l\'intra.</string>
 </resources>

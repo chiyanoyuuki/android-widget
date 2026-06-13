@@ -10,8 +10,9 @@ le site.
 - Tap sur un **jour** : ouvre l'intra (`https://www.cloechaudronbeauty.com/intraccb/`)
 
 Les données viennent du même endpoint que l'app :
-`https://www.cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe`
-(public, pas d'authentification). Elles sont mises en cache 30 min et
+`http://cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe`
+(public, pas d'authentification, **HTTP en clair** — voir
+`network_security_config.xml`). Elles sont mises en cache 30 min et
 rafraîchies automatiquement, ou manuellement via le tap sur le titre.
 
 ## Légende des couleurs (identiques au SCSS de l'intra)

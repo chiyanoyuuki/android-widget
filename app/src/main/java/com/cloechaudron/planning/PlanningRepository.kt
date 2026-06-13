@@ -35,6 +35,40 @@ data class DayCell(
     val count: Int,        // nombre d'événements ce jour (badge si > 1)
 )
 
+/**
+ * Résultat d'un test de connexion (écran d'aide). Contrairement à fetch(), ne
+ * masque rien : sert à savoir POURQUOI le widget reste vide.
+ */
+data class Diagnostic(
+    val url: String,
+    val httpCode: Int,        // -1 = exception réseau (voir error)
+    val contentType: String,
+    val error: String?,
+    val bodyLength: Int,
+    val bodyPreview: String,  // premiers caractères de la réponse
+    val parsedDays: Int,      // nb de jours distincts ayant ≥ 1 événement
+    val parsedEvents: Int,    // nb total d'événements parsés
+) {
+    fun summary(): String = buildString {
+        appendLine("URL :")
+        appendLine(url)
+        appendLine()
+        if (httpCode == -1) {
+            appendLine("❌ Échec réseau")
+            appendLine(error ?: "erreur inconnue")
+        } else {
+            val ok = httpCode in 200..299
+            appendLine("${if (ok) "✅" else "❌"} HTTP $httpCode  ($contentType)")
+            appendLine("Corps reçu : $bodyLength caractères")
+            appendLine("Jours avec événements : $parsedDays")
+            appendLine("Événements parsés : $parsedEvents")
+            appendLine()
+            appendLine("Aperçu du corps :")
+            append(if (bodyPreview.isBlank()) "(vide)" else bodyPreview)
+        }
+    }
+}
+
 /** Couleurs reprises 1:1 du SCSS de l'app. */
 object Palette {
     val RESERVE = Color.rgb(41, 114, 197)   // .reserve
@@ -68,7 +102,7 @@ object PlanningRepository {
 
     /** Source de données : même endpoint que getData() de l'app. */
     private const val ENDPOINT =
-        "https://www.cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe"
+        "http://cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe"
 
     private const val PREFS = "planning_widget"
     private const val KEY_JSON = "cache_json"
@@ -148,6 +182,51 @@ object PlanningRepository {
             } else null
         } catch (e: Exception) {
             null
+        } finally {
+            conn?.disconnect()
+        }
+    }
+
+    /**
+     * Test de connexion pour l'écran d'aide. Utilise EXACTEMENT le même endpoint
+     * et le même parseur que le widget, mais ne masque pas les erreurs : renvoie
+     * le code HTTP, un extrait du corps et le nombre d'événements parsés.
+     * À appeler depuis un thread worker (réseau).
+     */
+    fun diagnose(): Diagnostic {
+        var conn: HttpURLConnection? = null
+        return try {
+            conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15000
+                readTimeout = 15000
+                setRequestProperty("Accept", "application/json")
+            }
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val body = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            val map = if (code in 200..299) parse(body) else emptyMap()
+            Diagnostic(
+                url = ENDPOINT,
+                httpCode = code,
+                contentType = conn.contentType ?: "?",
+                error = null,
+                bodyLength = body.length,
+                bodyPreview = body.take(300),
+                parsedDays = map.size,
+                parsedEvents = map.values.sumOf { it.size },
+            )
+        } catch (e: Exception) {
+            Diagnostic(
+                url = ENDPOINT,
+                httpCode = -1,
+                contentType = "?",
+                error = "${e.javaClass.simpleName}: ${e.message}",
+                bodyLength = 0,
+                bodyPreview = "",
+                parsedDays = 0,
+                parsedEvents = 0,
+            )
         } finally {
             conn?.disconnect()
         }

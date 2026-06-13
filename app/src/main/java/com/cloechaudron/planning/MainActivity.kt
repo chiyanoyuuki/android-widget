@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 
 /**
  * Écran d'accueil minimal : sert surtout à donner une icône de lancement et à
@@ -28,6 +29,15 @@ class MainActivity : Activity() {
                     action = PlanningWidgetProvider.ACTION_REFRESH
                 }
             )
+        }
+
+        val output = findViewById<TextView>(R.id.diag_output)
+        findViewById<Button>(R.id.btn_test).setOnClickListener {
+            output.text = getString(R.string.test_running)
+            Thread {
+                val d = PlanningRepository.diagnose()
+                runOnUiThread { output.text = d.summary() }
+            }.start()
         }
     }
 }

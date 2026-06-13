@@ -38,5 +38,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/force_refresh" />
+
+        <Button
+            android:id="@+id/btn_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/test_connection" />
+
+        <TextView
+            android:id="@+id/diag_output"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textIsSelectable="true" />
     </LinearLayout>
 </ScrollView>

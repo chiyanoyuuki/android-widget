@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  L'endpoint du planning est servi en HTTP (cleartext), sur cloechaudronbeauty.com
+  sans sous-domaine www. Depuis Android 9 (API 28), le cleartext est interdit par
+  défaut : on l'autorise explicitement pour ce seul domaine (et ses sous-domaines).
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">cloechaudronbeauty.com</domain>
+    </domain-config>
+</network-security-config>
