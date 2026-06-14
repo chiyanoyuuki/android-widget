@@ -6,13 +6,13 @@
     android:layout_height="40dp">
 
     <!-- Fond (couleur du statut, défini dynamiquement) -->
-    <View
+    <ImageView
         android:id="@+id/cell_fill"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
     <!-- Bord spécial : aujourd'hui / manque planning / manque essai -->
-    <View
+    <ImageView
         android:id="@+id/cell_border"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
