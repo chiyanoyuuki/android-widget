@@ -69,6 +69,15 @@ data class Diagnostic(
     }
 }
 
+/** Un événement à venir, prêt à afficher dans le widget « prochain événement ». */
+data class EventInfo(
+    val millis: Long,        // début de journée, pour le tri
+    val dateLabel: String,   // ex. "samedi 12 juillet 2026"
+    val typeLabel: String,   // ex. "Mariage réservé"
+    val css: String,         // reserve/demande/essai/autre/over/perso (couleur)
+    val details: String,     // lignes "Libellé : valeur" séparées par \n
+)
+
 /** Couleurs reprises 1:1 du SCSS de l'app. */
 object Palette {
     val RESERVE = Color.rgb(41, 114, 197)   // .reserve
@@ -149,11 +158,11 @@ object PlanningRepository {
     }
 
     /**
-     * Charge les événements : cache si frais (< TTL), sinon réseau.
-     * En cas d'échec réseau, retombe sur le dernier cache disponible.
-     * Appelé depuis onDataSetChanged() (thread worker), donc le réseau est autorisé.
+     * Renvoie le JSON brut du planning : cache si frais (< TTL), sinon réseau.
+     * En cas d'échec réseau, retombe sur le dernier cache (peut être null).
+     * À appeler depuis un thread worker (réseau).
      */
-    fun load(context: Context): Map<String, List<Booking>> {
+    fun loadJson(context: Context): String? {
         val p = prefs(context)
         val now = System.currentTimeMillis()
         var json = p.getString(KEY_JSON, null)
@@ -165,7 +174,25 @@ object PlanningRepository {
                 p.edit().putString(KEY_JSON, fresh).putLong(KEY_TIME, now).apply()
             }
         }
+        return json
+    }
+
+    /**
+     * Charge les événements pour le calendrier (map jour -> liste).
+     * Appelé depuis onDataSetChanged() (thread worker), donc le réseau est autorisé.
+     */
+    fun load(context: Context): Map<String, List<Booking>> {
+        val json = loadJson(context)
         return if (json != null) parse(json) else emptyMap()
+    }
+
+    /**
+     * Charge les événements À VENIR (date >= aujourd'hui), triés par date
+     * croissante, pour le widget « prochain événement ». Réseau autorisé.
+     */
+    fun loadEvents(context: Context): List<EventInfo> {
+        val json = loadJson(context) ?: return emptyList()
+        return parseEvents(json)
     }
 
     private fun fetch(): String? {
@@ -336,6 +363,92 @@ object PlanningRepository {
     }
 
     private fun emptyCell() = DayCell(0, Color.TRANSPARENT, Color.TRANSPARENT, Border.NONE, 0)
+
+    // --- Événements à venir (widget "prochain événement") ---
+
+    private val WEEKDAYS = arrayOf(
+        "dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi",
+    )
+
+    /** Parse le JSON en liste d'événements à venir, triés par date croissante. */
+    private fun parseEvents(json: String): List<EventInfo> {
+        val arr = try { JSONArray(json) } catch (e: Exception) { return emptyList() }
+        val todayStart = startOfToday()
+        val out = ArrayList<EventInfo>()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            // Les essais (statut == 'essai') apparaissent en détail de leur
+            // événement (champ essai.date), comme dans le calendrier.
+            if (o.optString("statut", "") == "essai") continue
+            val date = o.optString("date", "")
+            if (!isValidDate(date)) continue
+            val millis = dateMillis(date)
+            if (millis < todayStart) continue // exclut les événements passés
+            out.add(buildEventInfo(o, millis))
+        }
+        out.sortBy { it.millis }
+        return out
+    }
+
+    private fun buildEventInfo(o: JSONObject, millis: Long): EventInfo {
+        val statut = o.optString("statut", "")
+        val etape = o.optInt("etape", 0)
+        return EventInfo(
+            millis = millis,
+            dateLabel = longDateLabel(millis),
+            typeLabel = typeLabel(statut, etape),
+            css = if (etape == 999) "over" else statut,
+            details = buildDetails(o),
+        )
+    }
+
+    private fun typeLabel(statut: String, etape: Int): String = when {
+        etape == 999 -> "Terminé"
+        statut == "reserve" -> "Mariage réservé"
+        statut == "demande" -> "Demande de mariage"
+        statut == "essai" -> "Essai"
+        statut == "autre" -> "Autre (shooting, tournage…)"
+        statut == "perso" || statut == "persofull" -> "Perso"
+        else -> statut.ifBlank { "Événement" }
+    }
+
+    private fun longDateLabel(millis: Long): String {
+        val c = Calendar.getInstance().apply { timeInMillis = millis }
+        val dow = WEEKDAYS[c.get(Calendar.DAY_OF_WEEK) - 1]
+        val day = c.get(Calendar.DAY_OF_MONTH)
+        val month = MONTHS[c.get(Calendar.MONTH)].lowercase()
+        val year = c.get(Calendar.YEAR)
+        return "$dow $day $month $year"
+    }
+
+    /**
+     * Construit les lignes de détail d'un événement. Rendu générique pour
+     * l'instant : dates d'essai/planning connues, puis tous les champs scalaires
+     * non vides. (À affiner quand on connaîtra le schéma JSON exact.)
+     */
+    private fun buildDetails(o: JSONObject): String {
+        val lines = ArrayList<String>()
+        o.optJSONObject("essai")?.optString("date")
+            ?.takeIf { it.isNotBlank() }?.let { lines.add("Essai : $it") }
+        o.optJSONObject("planning")?.optString("date")
+            ?.takeIf { it.isNotBlank() }?.let { lines.add("Planning : $it") }
+
+        val skip = setOf("date", "statut", "etape", "essai", "planning")
+        for (key in o.keys().asSequence().toList().sorted()) {
+            if (key in skip) continue
+            val text = when (val v = o.opt(key)) {
+                is String -> v.trim().takeIf { it.isNotEmpty() && !it.equals("null", true) }
+                is Boolean -> if (v) "oui" else null
+                is Int, is Long, is Double -> v.toString()
+                else -> null // objets/tableaux ignorés en v1
+            } ?: continue
+            lines.add("${prettify(key)} : $text")
+        }
+        return if (lines.isEmpty()) "Aucune info supplémentaire." else lines.joinToString("\n")
+    }
+
+    private fun prettify(key: String): String =
+        key.replace('_', ' ').replaceFirstChar { it.uppercase() }
 
     // --- Utilitaires date ---
 

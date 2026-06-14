@@ -29,6 +29,11 @@ class MainActivity : Activity() {
                     action = PlanningWidgetProvider.ACTION_REFRESH
                 }
             )
+            sendBroadcast(
+                Intent(this, EventWidgetProvider::class.java).apply {
+                    action = EventWidgetProvider.ACTION_REFRESH
+                }
+            )
         }
 
         val output = findViewById<TextView>(R.id.diag_output)

@@ -15,6 +15,22 @@ Les données viennent du même endpoint que l'app :
 `network_security_config.xml`). Elles sont mises en cache 30 min et
 rafraîchies automatiquement, ou manuellement via le tap sur le titre.
 
+## Deuxième widget — « Prochain événement »
+
+Un widget séparé (à ajouter comme le premier) qui affiche **un événement à
+venir à la fois**, avec toutes ses infos utiles :
+
+- ◀ ▶ : parcourir les événements **triés par date** (les événements passés
+  sont exclus). Le compteur central indique la position (`3 / 12`).
+- Tap sur le **compteur** : rafraîchir les données et revenir au prochain
+  événement.
+- Tap sur la **carte** : ouvre l'intra.
+
+> Le détail affiché est pour l'instant **générique** (date, type, puis tous les
+> champs non vides de l'événement). Les libellés seront affinés une fois le
+> format exact d'un événement connu — voir `buildDetails()` dans
+> `PlanningRepository.kt`.
+
 ## Légende des couleurs (identiques au SCSS de l'intra)
 
 | Couleur | Signification |
