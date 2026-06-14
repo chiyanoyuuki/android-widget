@@ -75,7 +75,11 @@ data class EventInfo(
     val dateLabel: String,   // ex. "samedi 12 juillet 2026"
     val typeLabel: String,   // ex. "Mariage réservé"
     val css: String,         // reserve/demande/essai/autre/over/perso (couleur)
-    val details: String,     // lignes "Libellé : valeur" séparées par \n
+    val name: String,        // nom du client ("" si absent)
+    val details: String,     // adresse / horaires / reste à payer, séparés par \n
+    val phone: String,       // numéro brut ("" si absent)
+    val email: String,       // adresse mail ("" si absent)
+    val mailSubject: String, // objet pré-rempli du mail
 )
 
 /** Couleurs reprises 1:1 du SCSS de l'app. */
@@ -393,12 +397,20 @@ object PlanningRepository {
     private fun buildEventInfo(o: JSONObject, millis: Long): EventInfo {
         val statut = o.optString("statut", "")
         val etape = o.optInt("etape", 0)
+        val type = typeLabel(statut, etape)
+        val date = o.optString("date", "")
+        val detailLines = listOf(addressLine(o), scheduleLine(o), resteLine(o))
+            .filter { it.isNotBlank() }
         return EventInfo(
             millis = millis,
             dateLabel = longDateLabel(millis),
-            typeLabel = typeLabel(statut, etape),
+            typeLabel = type,
             css = if (etape == 999) "over" else statut,
-            details = buildDetails(o),
+            name = o.optString("nom", "").trim(),
+            details = detailLines.joinToString("\n"),
+            phone = o.optString("tel", "").trim(),
+            email = o.optString("mail", "").trim(),
+            mailSubject = "$type - $date",
         )
     }
 
@@ -422,33 +434,119 @@ object PlanningRepository {
     }
 
     /**
-     * Construit les lignes de détail d'un événement. Rendu générique pour
-     * l'instant : dates d'essai/planning connues, puis tous les champs scalaires
-     * non vides. (À affiner quand on connaîtra le schéma JSON exact.)
+     * Adresse du mariage : "Domaine, adresse codepostal".
+     * Priorité aux objets `mariage` puis `planning`, sinon aux champs racine.
+     * Ajoute " (à HHhMM)" si une heure de cérémonie est connue.
      */
-    private fun buildDetails(o: JSONObject): String {
-        val lines = ArrayList<String>()
-        o.optJSONObject("essai")?.optString("date")
-            ?.takeIf { it.isNotBlank() }?.let { lines.add("Essai : $it") }
-        o.optJSONObject("planning")?.optString("date")
-            ?.takeIf { it.isNotBlank() }?.let { lines.add("Planning : $it") }
-
-        val skip = setOf("date", "statut", "etape", "essai", "planning")
-        for (key in o.keys().asSequence().toList().sorted()) {
-            if (key in skip) continue
-            val text = when (val v = o.opt(key)) {
-                is String -> v.trim().takeIf { it.isNotEmpty() && !it.equals("null", true) }
-                is Boolean -> if (v) "oui" else null
-                is Int, is Long, is Double -> v.toString()
-                else -> null // objets/tableaux ignorés en v1
-            } ?: continue
-            lines.add("${prettify(key)} : $text")
+    private fun addressLine(o: JSONObject): String {
+        var domaine = ""
+        var adresse = ""
+        var cp = ""
+        for (s in listOfNotNull(o.optJSONObject("mariage"), o.optJSONObject("planning"))) {
+            if (domaine.isBlank()) domaine = s.optString("domaine").trim()
+            if (adresse.isBlank()) adresse = s.optString("adresse").trim()
+            if (cp.isBlank()) cp = s.optString("codepostal").trim()
         }
-        return if (lines.isEmpty()) "Aucune info supplémentaire." else lines.joinToString("\n")
+        if (adresse.isBlank()) adresse = o.optString("adresse").trim()
+        if (cp.isBlank()) cp = o.optString("codepostal").trim()
+
+        val right = listOf(adresse, cp).filter { it.isNotBlank() }.joinToString(" ")
+        val parts = listOf(domaine, right).filter { it.isNotBlank() }
+        if (parts.isEmpty()) return ""
+        var line = parts.joinToString(", ")
+        val heure = weddingTime(o)
+        if (heure.isNotBlank()) line += " (à $heure)"
+        return line
     }
 
-    private fun prettify(key: String): String =
-        key.replace('_', ' ').replaceFirstChar { it.uppercase() }
+    /** Heure de cérémonie (champ exact incertain : on tente les noms plausibles). */
+    private fun weddingTime(o: JSONObject): String {
+        val viaMariage = o.optJSONObject("mariage")?.optString("heure").orEmpty()
+        return viaMariage.ifBlank { o.optString("heure", "") }.trim()
+    }
+
+    /**
+     * Horaires sur place depuis `planning` : heure d'arrivée (plus tôt) - heure de
+     * fin la plus tardive (finprestas), avec le nombre de prestations.
+     * Ex. "Sur place : 14h40 - 18h00 (2)".
+     */
+    private fun scheduleLine(o: JSONObject): String {
+        val p = o.optJSONObject("planning") ?: return ""
+        var minM = Int.MAX_VALUE
+        var maxM = Int.MIN_VALUE
+        val invitees = p.optJSONArray("invitees")
+        if (invitees != null) {
+            for (i in 0 until invitees.length()) {
+                val row = invitees.optJSONArray(i) ?: continue
+                for (j in 0 until row.length()) {
+                    val m = parseHm(row.optString(j, "")) ?: continue
+                    if (m < minM) minM = m
+                    if (m > maxM) maxM = m
+                }
+            }
+        }
+        val arrival = if (minM != Int.MAX_VALUE) formatHm(minM) else ""
+        val end = p.optString("finprestas").trim()
+            .ifBlank { if (maxM != Int.MIN_VALUE) formatHm(maxM) else "" }
+        if (arrival.isBlank() && end.isBlank()) return ""
+
+        val range = listOf(arrival, end).filter { it.isNotBlank() }.joinToString(" - ")
+        val count = p.optJSONArray("planningprestas")?.length() ?: 0
+        return if (count > 0) "Sur place : $range ($count)" else "Sur place : $range"
+    }
+
+    /** "14h40" / "10h" / "9h05" -> minutes depuis minuit, ou null si non parsable. */
+    private fun parseHm(s: String): Int? {
+        val t = s.trim().lowercase()
+        if (!t.contains('h')) return null
+        val parts = t.split('h')
+        val h = parts[0].toIntOrNull() ?: return null
+        val m = if (parts.size > 1 && parts[1].isNotBlank()) (parts[1].toIntOrNull() ?: 0) else 0
+        if (h !in 0..23 || m !in 0..59) return null
+        return h * 60 + m
+    }
+
+    private fun formatHm(min: Int): String = String.format("%02dh%02d", min / 60, min % 60)
+
+    /**
+     * Reste à payer = "Moi" (somme des prestations du devis hors frais de
+     * déplacement) - somme des soldes de factures.
+     */
+    private fun resteLine(o: JSONObject): String {
+        val prestas = o.optJSONObject("devis")?.optJSONArray("prestas") ?: return ""
+        var moi = 0.0
+        for (i in 0 until prestas.length()) {
+            val pr = prestas.optJSONObject(i) ?: continue
+            if (pr.optBoolean("kilorly", false)) continue // exclut les frais de déplacement
+            val qte = asDouble(pr.opt("qte")) ?: continue
+            val prix = asDouble(pr.opt("prix")) ?: continue
+            val reduc = asDouble(pr.opt("reduc")) ?: 0.0
+            moi += qte * prix - reduc
+        }
+        if (moi <= 0.0) return ""
+
+        var paye = 0.0
+        val factures = o.optJSONArray("factures")
+        if (factures != null) {
+            for (i in 0 until factures.length()) {
+                paye += asDouble(factures.optJSONObject(i)?.opt("solde")) ?: 0.0
+            }
+        }
+        return "Reste à payer : ${formatEuro(moi - paye)}"
+    }
+
+    /** Nombre depuis un Number ou une chaîne ("744.54", "9,5"), sinon null. */
+    private fun asDouble(v: Any?): Double? = when (v) {
+        is Number -> v.toDouble()
+        is String -> v.trim().replace(',', '.').toDoubleOrNull()
+        else -> null
+    }
+
+    private fun formatEuro(v: Double): String {
+        val rounded = Math.round(v * 100.0) / 100.0
+        return if (rounded == Math.floor(rounded)) "${rounded.toLong()} €"
+        else String.format("%.2f €", rounded)
+    }
 
     // --- Utilitaires date ---
 

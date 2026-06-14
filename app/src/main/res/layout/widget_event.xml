@@ -7,7 +7,7 @@
     android:background="@drawable/widget_background"
     android:padding="12dp">
 
-    <!-- En-tête : ◀ | compteur (tap = rafraîchir) | ▶ -->
+    <!-- En-tête : ◀ | compteur | ▶ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,7 +46,7 @@
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Contenu de l'événement (tap -> ouvre l'intra) -->
+    <!-- Contenu de l'événement (tap ailleurs -> ouvre l'intra) -->
     <LinearLayout
         android:id="@+id/event_content"
         android:layout_width="match_parent"
@@ -68,9 +68,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="2dp"
-            android:paddingBottom="6dp"
             android:textSize="14sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/event_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/title"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/event_details"
@@ -79,6 +87,25 @@
             android:textColor="#FF333333"
             android:textSize="13sp"
             android:lineSpacingExtra="2dp" />
+
+        <TextView
+            android:id="@+id/event_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/required"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/event_mail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="2dp"
+            android:textColor="@color/required"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <!-- Aucun événement à venir -->

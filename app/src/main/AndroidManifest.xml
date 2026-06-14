@@ -45,6 +45,18 @@
                 android:resource="@xml/event_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".RefreshWidgetProvider"
+            android:exported="true"
+            android:label="@string/refresh_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/refresh_widget_info" />
+        </receiver>
+
         <service
             android:name=".PlanningWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"

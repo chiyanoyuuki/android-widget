@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget 1x1 "Actualiser" : un simple bouton rond avec une icône de rafraîchissement -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/refresh_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@drawable/widget_background"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/refresh_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⟳"
+        android:textColor="@color/title"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+</LinearLayout>

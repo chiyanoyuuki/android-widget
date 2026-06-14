@@ -93,9 +93,30 @@ class EventWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.event_date, e.dateLabel)
             views.setTextViewText(R.id.event_type, e.typeLabel)
             views.setTextColor(R.id.event_type, typeColor(e.css))
-            views.setTextViewText(R.id.event_details, e.details)
+            setOrHide(views, R.id.event_name, e.name)
+            setOrHide(views, R.id.event_details, e.details)
 
-            // Tap sur la carte -> ouvre l'intra
+            // Téléphone cliquable -> ouvre le composeur avec le numéro
+            if (e.phone.isNotBlank()) {
+                views.setViewVisibility(R.id.event_phone, View.VISIBLE)
+                views.setTextViewText(R.id.event_phone, "📞 ${e.phone}")
+                views.setOnClickPendingIntent(R.id.event_phone, dialIntent(context, id, e.phone))
+            } else {
+                views.setViewVisibility(R.id.event_phone, View.GONE)
+            }
+
+            // Mail cliquable -> rédaction avec destinataire + objet pré-remplis
+            if (e.email.isNotBlank()) {
+                views.setViewVisibility(R.id.event_mail, View.VISIBLE)
+                views.setTextViewText(R.id.event_mail, "✉ ${e.email}")
+                views.setOnClickPendingIntent(
+                    R.id.event_mail, mailIntent(context, id, e.email, e.mailSubject),
+                )
+            } else {
+                views.setViewVisibility(R.id.event_mail, View.GONE)
+            }
+
+            // Tap ailleurs sur la carte -> ouvre l'intra
             views.setOnClickPendingIntent(R.id.event_content, openSiteIntent(context))
         }
 
@@ -110,6 +131,15 @@ class EventWidgetProvider : AppWidgetProvider() {
     private fun typeColor(css: String): Int {
         val c = Palette.fillFor(css)
         return if (c == Palette.AVAILABLE) Palette.TEXT_DARK else c
+    }
+
+    private fun setOrHide(views: RemoteViews, viewId: Int, text: String) {
+        if (text.isNotBlank()) {
+            views.setViewVisibility(viewId, View.VISIBLE)
+            views.setTextViewText(viewId, text)
+        } else {
+            views.setViewVisibility(viewId, View.GONE)
+        }
     }
 
     // --- Index courant par widget ---
@@ -140,6 +170,27 @@ class EventWidgetProvider : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+    /** Ouvre le composeur téléphonique avec le numéro pré-rempli (sans appeler). */
+    private fun dialIntent(context: Context, id: Int, phone: String): PendingIntent {
+        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone.replace(" ", "")))
+        return PendingIntent.getActivity(
+            context, REQ_DIAL + id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    /** Ouvre l'app mail avec destinataire + objet (type - date) pré-remplis. */
+    private fun mailIntent(context: Context, id: Int, email: String, subject: String): PendingIntent {
+        val intent = Intent(
+            Intent.ACTION_SENDTO,
+            Uri.parse("mailto:$email?subject=" + Uri.encode(subject)),
+        ).apply { putExtra(Intent.EXTRA_SUBJECT, subject) }
+        return PendingIntent.getActivity(
+            context, REQ_MAIL + id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     private fun navIntent(context: Context, id: Int, action: String): PendingIntent {
         val intent = Intent(context, EventWidgetProvider::class.java).apply {
             this.action = action
@@ -164,5 +215,7 @@ class EventWidgetProvider : AppWidgetProvider() {
         private const val PREFS = "planning_widget"
         private const val INVALID = AppWidgetManager.INVALID_APPWIDGET_ID
         private const val REQ_OPEN = 200
+        private const val REQ_DIAL = 300
+        private const val REQ_MAIL = 400
     }
 }

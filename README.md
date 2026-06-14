@@ -12,24 +12,32 @@ le site.
 Les données viennent du même endpoint que l'app :
 `http://cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe`
 (public, pas d'authentification, **HTTP en clair** — voir
-`network_security_config.xml`). Elles sont mises en cache 30 min et
-rafraîchies automatiquement, ou manuellement via le tap sur le titre.
+`network_security_config.xml`). Elles sont mises en cache 30 min. Les widgets
+ne se rafraîchissent **pas** automatiquement : utilise le widget « Actualiser »
+(voir plus bas) ou les taps de rafraîchissement de chaque widget.
 
 ## Deuxième widget — « Prochain événement »
 
 Un widget séparé (à ajouter comme le premier) qui affiche **un événement à
-venir à la fois**, avec toutes ses infos utiles :
+venir à la fois**, trié par date (événements passés exclus) :
 
-- ◀ ▶ : parcourir les événements **triés par date** (les événements passés
-  sont exclus). Le compteur central indique la position (`3 / 12`).
-- Tap sur le **compteur** : rafraîchir les données et revenir au prochain
-  événement.
-- Tap sur la **carte** : ouvre l'intra.
+- ◀ ▶ : parcourir les événements. Le compteur central indique la position
+  (`3 / 12`).
+- Tap sur le **compteur** : rafraîchir et revenir au prochain événement.
+- Tap sur le **téléphone** : ouvre le composeur avec le numéro pré-rempli.
+- Tap sur le **mail** : ouvre l'app mail (destinataire + objet « type - date »).
+- Tap ailleurs sur la **carte** : ouvre l'intra.
 
-> Le détail affiché est pour l'instant **générique** (date, type, puis tous les
-> champs non vides de l'événement). Les libellés seront affinés une fois le
-> format exact d'un événement connu — voir `buildDetails()` dans
-> `PlanningRepository.kt`.
+Infos affichées : date, type, nom du client, adresse du mariage (domaine,
+adresse, code postal), horaires sur place (`arrivée - fin (nb prestations)`) et
+reste à payer (total « Moi » du devis, hors frais de déplacement, − somme des
+factures).
+
+## Troisième widget — « Actualiser » (1×1)
+
+Comme les widgets ne se mettent **pas** à jour tout seuls, ce petit bouton 1×1
+(icône ⟳) force des données fraîches et rafraîchit **le calendrier et le widget
+événement** en un seul tap.
 
 ## Légende des couleurs (identiques au SCSS de l'intra)
 
@@ -106,8 +114,9 @@ Copier le fichier `app-debug.apk` sur le téléphone et l'ouvrir. Autoriser
 
 - Le **swipe** pour changer de mois n'est pas possible dans un widget Android :
   on utilise les flèches ◀ ▶ (limitation de `RemoteViews`).
-- Le rafraîchissement automatique périodique est limité à ~30 min par le système
-  (`updatePeriodMillis`). Le tap sur le titre force une mise à jour immédiate.
+- Les widgets ne se rafraîchissent **pas** automatiquement (`updatePeriodMillis`
+  = 0). La mise à jour est manuelle : widget « Actualiser » (1×1), tap sur le
+  titre du mois (calendrier) ou sur le compteur (événement).
 - Si le réseau échoue **et** qu'aucune donnée n'a jamais été chargée, le widget
   affiche un message ; sinon il garde le dernier planning connu (hors-ligne OK).
 - L'endpoint étant public, n'importe qui connaissant l'URL peut lire le planning.

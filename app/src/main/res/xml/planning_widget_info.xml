@@ -10,7 +10,7 @@
     android:maxResizeHeight="520dp"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:updatePeriodMillis="1800000"
+    android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_calendar"
     android:previewLayout="@layout/widget_calendar"
     android:description="@string/widget_description" />
