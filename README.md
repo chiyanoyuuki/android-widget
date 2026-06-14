@@ -5,8 +5,8 @@ du planning IntraCCB, avec **les mêmes couleurs que l'intra** pour les jours
 indisponibles. Permet de voir d'un coup d'œil quels jours sont libres sans ouvrir
 le site.
 
-- ◀ ▶ : changer de mois
-- Tap sur le **titre du mois** : revenir au mois courant **et** rafraîchir les données
+- ◀ ▶ (ligne du bas) : changer de mois ; ◀ ▶ (ligne du haut) : changer d'année
+- Tap sur le **mois** ou l'**année** : revenir au mois courant **et** rafraîchir
 - Tap sur un **jour** : ouvre l'intra (`https://www.cloechaudronbeauty.com/intraccb/`)
 
 Les données viennent du même endpoint que l'app :
@@ -27,6 +27,9 @@ venir à la fois**, trié par date (événements passés exclus) :
 - Tap sur le **téléphone** : ouvre le composeur avec le numéro pré-rempli.
 - Tap sur le **mail** : ouvre l'app mail (destinataire + objet « type - date »).
 - Tap ailleurs sur la **carte** : ouvre l'intra.
+
+Les **essais** apparaissent comme des cartes à part (reconstruits depuis
+l'essai de chaque mariage, comme `initData()` de l'app), avec le lieu et l'heure.
 
 Infos affichées : date, type, nom du client, adresse du mariage (domaine,
 adresse, code postal), horaires sur place (`arrivée - fin (nb prestations)`) et

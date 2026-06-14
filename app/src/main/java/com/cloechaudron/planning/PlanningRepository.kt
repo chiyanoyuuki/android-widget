@@ -374,21 +374,35 @@ object PlanningRepository {
         "dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi",
     )
 
-    /** Parse le JSON en liste d'événements à venir, triés par date croissante. */
+    /**
+     * Parse le JSON en liste d'événements à venir, triés par date croissante.
+     * Reproduit initData() : les lignes statut == 'essai' sont exclues, puis un
+     * événement « essai » est reconstruit pour chaque mariage ayant un essai.date
+     * (en reprenant nom/tel/mail du parent). Ainsi les essais apparaissent comme
+     * des étapes navigables dans le widget.
+     */
     private fun parseEvents(json: String): List<EventInfo> {
         val arr = try { JSONArray(json) } catch (e: Exception) { return emptyList() }
         val todayStart = startOfToday()
         val out = ArrayList<EventInfo>()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
-            // Les essais (statut == 'essai') apparaissent en détail de leur
-            // événement (champ essai.date), comme dans le calendrier.
-            if (o.optString("statut", "") == "essai") continue
+            if (o.optString("statut", "") == "essai") continue // lignes essai brutes exclues
+
+            // Événement principal (mariage / demande / autre / perso)
             val date = o.optString("date", "")
-            if (!isValidDate(date)) continue
-            val millis = dateMillis(date)
-            if (millis < todayStart) continue // exclut les événements passés
-            out.add(buildEventInfo(o, millis))
+            if (isValidDate(date)) {
+                val millis = dateMillis(date)
+                if (millis >= todayStart) out.add(buildEventInfo(o, millis))
+            }
+
+            // Essai reconstruit depuis essai.date
+            val essai = o.optJSONObject("essai")
+            val essaiDate = essai?.optString("date").orEmpty()
+            if (essai != null && isValidDate(essaiDate)) {
+                val millis = dateMillis(essaiDate)
+                if (millis >= todayStart) out.add(buildEssaiEvent(o, essai, millis))
+            }
         }
         out.sortBy { it.millis }
         return out
@@ -411,6 +425,32 @@ object PlanningRepository {
             phone = o.optString("tel", "").trim(),
             email = o.optString("mail", "").trim(),
             mailSubject = "$type - $date",
+        )
+    }
+
+    /**
+     * Événement « essai » reconstruit à partir de l'essai d'un mariage : reprend
+     * le contact du parent, et affiche le lieu (+ heure) de l'essai.
+     */
+    private fun buildEssaiEvent(parent: JSONObject, essai: JSONObject, millis: Long): EventInfo {
+        val lieu = essai.optString("lieu").trim()
+        val heure = essai.optString("heure").trim()
+        val loc = when {
+            lieu.isNotBlank() && heure.isNotBlank() -> "$lieu (à $heure)"
+            lieu.isNotBlank() -> lieu
+            heure.isNotBlank() -> "à $heure"
+            else -> ""
+        }
+        return EventInfo(
+            millis = millis,
+            dateLabel = longDateLabel(millis),
+            typeLabel = "Essai",
+            css = "essai",
+            name = parent.optString("nom", "").trim(),
+            details = loc,
+            phone = parent.optString("tel", "").trim(),
+            email = parent.optString("mail", "").trim(),
+            mailSubject = "Essai - ${essai.optString("date", "")}",
         )
     }
 

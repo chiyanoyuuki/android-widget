@@ -41,6 +41,14 @@ class PlanningWidgetProvider : AppWidgetProvider() {
                 PlanningRepository.changeOffset(context, id, +1)
                 refresh(context, mgr, id, invalidate = false)
             }
+            ACTION_PREV_YEAR -> if (id != INVALID) {
+                PlanningRepository.changeOffset(context, id, -12)
+                refresh(context, mgr, id, invalidate = false)
+            }
+            ACTION_NEXT_YEAR -> if (id != INVALID) {
+                PlanningRepository.changeOffset(context, id, +12)
+                refresh(context, mgr, id, invalidate = false)
+            }
             ACTION_TODAY -> if (id != INVALID) {
                 PlanningRepository.setOffset(context, id, 0)
                 refresh(context, mgr, id, invalidate = true)
@@ -63,7 +71,8 @@ class PlanningWidgetProvider : AppWidgetProvider() {
         val (year, month0) = PlanningRepository.displayedMonth(offset)
 
         val views = RemoteViews(context.packageName, R.layout.widget_calendar)
-        views.setTextViewText(R.id.month_label, "${PlanningRepository.MONTHS[month0]} $year")
+        views.setTextViewText(R.id.year_label, year.toString())
+        views.setTextViewText(R.id.month_label, PlanningRepository.MONTHS[month0])
 
         // Adapter -> service qui fabrique les 42 cases
         val service = Intent(context, PlanningWidgetService::class.java).apply {
@@ -81,10 +90,13 @@ class PlanningWidgetProvider : AppWidgetProvider() {
         )
         views.setPendingIntentTemplate(R.id.calendar_grid, openSite)
 
-        // Navigation
+        // Navigation mois + année
         views.setOnClickPendingIntent(R.id.nav_prev, navIntent(context, id, ACTION_PREV))
         views.setOnClickPendingIntent(R.id.nav_next, navIntent(context, id, ACTION_NEXT))
+        views.setOnClickPendingIntent(R.id.nav_year_prev, navIntent(context, id, ACTION_PREV_YEAR))
+        views.setOnClickPendingIntent(R.id.nav_year_next, navIntent(context, id, ACTION_NEXT_YEAR))
         views.setOnClickPendingIntent(R.id.month_label, navIntent(context, id, ACTION_TODAY))
+        views.setOnClickPendingIntent(R.id.year_label, navIntent(context, id, ACTION_TODAY))
 
         mgr.updateAppWidget(id, views)
         mgr.notifyAppWidgetViewDataChanged(id, R.id.calendar_grid)
@@ -111,6 +123,8 @@ class PlanningWidgetProvider : AppWidgetProvider() {
 
         const val ACTION_PREV = "com.cloechaudron.planning.PREV"
         const val ACTION_NEXT = "com.cloechaudron.planning.NEXT"
+        const val ACTION_PREV_YEAR = "com.cloechaudron.planning.PREV_YEAR"
+        const val ACTION_NEXT_YEAR = "com.cloechaudron.planning.NEXT_YEAR"
         const val ACTION_TODAY = "com.cloechaudron.planning.TODAY"
         const val ACTION_REFRESH = "com.cloechaudron.planning.REFRESH"
 

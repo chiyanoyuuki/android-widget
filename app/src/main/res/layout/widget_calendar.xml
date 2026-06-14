@@ -6,7 +6,44 @@
     android:background="@drawable/widget_background"
     android:padding="10dp">
 
-    <!-- En-tête : flèche précédente | mois année | flèche suivante -->
+    <!-- En-tête année : ◀ | année | ▶ (navigation rapide ±1 an) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="2dp">
+
+        <TextView
+            android:id="@+id/nav_year_prev"
+            android:layout_width="36dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="◀"
+            android:textColor="@color/title"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/year_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/title"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/nav_year_next"
+            android:layout_width="36dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="▶"
+            android:textColor="@color/title"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- En-tête mois : flèche précédente | mois | flèche suivante -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
