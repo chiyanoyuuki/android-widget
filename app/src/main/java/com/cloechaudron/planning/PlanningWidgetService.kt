@@ -25,6 +25,8 @@ class CalendarFactory(
 ) : RemoteViewsService.RemoteViewsFactory {
 
     private var cells: List<DayCell> = emptyList()
+    private var year = 0
+    private var month0 = 0
 
     override fun onCreate() {}
 
@@ -35,7 +37,9 @@ class CalendarFactory(
     /** Appelé sur un thread worker -> le réseau est autorisé ici. */
     override fun onDataSetChanged() {
         val offset = PlanningRepository.offsetOf(context, appWidgetId)
-        val (year, month0) = PlanningRepository.displayedMonth(offset)
+        val (y, m) = PlanningRepository.displayedMonth(offset)
+        year = y
+        month0 = m
         val events = PlanningRepository.load(context)
         // Si aucune donnée n'a jamais pu être chargée -> liste vide -> vue "empty".
         cells = if (PlanningRepository.hasCache(context)) {
@@ -78,8 +82,16 @@ class CalendarFactory(
             rv.setViewVisibility(R.id.cell_badge, View.GONE)
         }
 
-        // Clic -> le template (défini par le provider) ouvre l'intra
-        rv.setOnClickFillInIntent(R.id.cell_root, Intent())
+        // Seuls les jours avec événements sont cliquables -> ouvre le détail du jour
+        // (le template, défini par le provider, lance DayDetailActivity ; la date
+        // est fournie par ce fill-in).
+        if (cell.hasEvents) {
+            val dateStr = String.format("%02d/%02d/%04d", cell.day, month0 + 1, year)
+            rv.setOnClickFillInIntent(
+                R.id.cell_root,
+                Intent().putExtra(PlanningWidgetProvider.EXTRA_DATE, dateStr),
+            )
+        }
         return rv
     }
 

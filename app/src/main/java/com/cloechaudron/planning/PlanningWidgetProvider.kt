@@ -50,8 +50,9 @@ class PlanningWidgetProvider : AppWidgetProvider() {
                 refresh(context, mgr, id, invalidate = false)
             }
             ACTION_TODAY -> if (id != INVALID) {
+                // Retour au mois courant SANS refetch (l'actualisation passe par le widget 1x1)
                 PlanningRepository.setOffset(context, id, 0)
-                refresh(context, mgr, id, invalidate = true)
+                refresh(context, mgr, id, invalidate = false)
             }
             ACTION_REFRESH -> {
                 PlanningRepository.invalidate(context)
@@ -82,13 +83,14 @@ class PlanningWidgetProvider : AppWidgetProvider() {
         views.setRemoteAdapter(R.id.calendar_grid, service)
         views.setEmptyView(R.id.calendar_grid, R.id.calendar_empty)
 
-        // Clic sur un jour -> ouvre l'intra (template + fill-in vide)
-        val openSite = PendingIntent.getActivity(
+        // Clic sur un jour avec événements -> écran de détail (la date arrive via
+        // le fill-in du service). Template MUTABLE pour autoriser cette injection.
+        val dayTemplate = PendingIntent.getActivity(
             context, REQ_OPEN,
-            Intent(Intent.ACTION_VIEW, Uri.parse(SITE_URL)),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            Intent(context, DayDetailActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
         )
-        views.setPendingIntentTemplate(R.id.calendar_grid, openSite)
+        views.setPendingIntentTemplate(R.id.calendar_grid, dayTemplate)
 
         // Navigation mois + année
         views.setOnClickPendingIntent(R.id.nav_prev, navIntent(context, id, ACTION_PREV))
@@ -120,6 +122,7 @@ class PlanningWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val SITE_URL = "https://www.cloechaudronbeauty.com/intraccb/"
+        const val EXTRA_DATE = "com.cloechaudron.planning.EXTRA_DATE"
 
         const val ACTION_PREV = "com.cloechaudron.planning.PREV"
         const val ACTION_NEXT = "com.cloechaudron.planning.NEXT"

@@ -6,15 +6,18 @@ indisponibles. Permet de voir d'un coup d'œil quels jours sont libres sans ouvr
 le site.
 
 - ◀ ▶ (ligne du bas) : changer de mois ; ◀ ▶ (ligne du haut) : changer d'année
-- Tap sur le **mois** ou l'**année** : revenir au mois courant **et** rafraîchir
-- Tap sur un **jour** : ouvre l'intra (`https://www.cloechaudronbeauty.com/intraccb/`)
+- Tap sur le **mois** ou l'**année** : revenir au mois courant (sans refetch)
+- Tap sur un **jour avec événements** : ouvre le **détail du jour** (infos,
+  navigation ◀ ▶ entre les événements de la journée, appel/mail, lien intra,
+  bouton Retour)
 
 Les données viennent du même endpoint que l'app :
 `http://cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe`
 (public, pas d'authentification, **HTTP en clair** — voir
-`network_security_config.xml`). Elles sont mises en cache 30 min. Les widgets
-ne se rafraîchissent **pas** automatiquement : utilise le widget « Actualiser »
-(voir plus bas) ou les taps de rafraîchissement de chaque widget.
+`network_security_config.xml`). Elles sont mises en cache. La récupération se
+fait **uniquement à la demande** : widget « Actualiser » (1×1), tap sur le
+compteur du widget événement, ou bouton dans l'app. **Naviguer** dans le
+calendrier (mois / année) ne déclenche **aucun** fetch.
 
 ## Deuxième widget — « Prochain événement »
 
@@ -111,15 +114,15 @@ Copier le fichier `app-debug.apk` sur le téléphone et l'ouvrir. Autoriser
 | Artiste / endpoint API | `ENDPOINT` dans `PlanningRepository.kt` |
 | URL ouverte au clic | `SITE_URL` dans `PlanningWidgetProvider.kt` |
 | Couleurs des statuts | `Palette` dans `PlanningRepository.kt` |
-| Durée du cache | `TTL_MS` dans `PlanningRepository.kt` (défaut 30 min) |
 
 ## Limitations
 
 - Le **swipe** pour changer de mois n'est pas possible dans un widget Android :
   on utilise les flèches ◀ ▶ (limitation de `RemoteViews`).
 - Les widgets ne se rafraîchissent **pas** automatiquement (`updatePeriodMillis`
-  = 0). La mise à jour est manuelle : widget « Actualiser » (1×1), tap sur le
-  titre du mois (calendrier) ou sur le compteur (événement).
+  = 0) et la navigation ne refetch pas. La récupération est manuelle : widget
+  « Actualiser » (1×1), tap sur le compteur du widget événement, ou bouton dans
+  l'app. Le cache n'expire plus seul (re-fetch seulement sur invalidate()).
 - Si le réseau échoue **et** qu'aucune donnée n'a jamais été chargée, le widget
   affiche un message ; sinon il garde le dernier planning connu (hors-ligne OK).
 - L'endpoint étant public, n'importe qui connaissant l'URL peut lire le planning.

@@ -14,5 +14,7 @@
     <string name="event_empty">Aucun événement à venir.</string>
     <string name="refresh_widget_label">Actualiser le planning</string>
     <string name="refresh_widget_description">Bouton 1×1 : met à jour les widgets</string>
+    <string name="day_back">‹ Retour</string>
+    <string name="day_empty">Aucun événement ce jour.</string>
     <string name="main_help">Ajoute le widget « Planning Cloé » sur ton écran d\'accueil.\n\n• Les jours colorés = indisponibles (mêmes couleurs que l\'intra).\n• Les flèches ◀ ▶ changent de mois.\n• Tape sur le mois pour revenir au mois courant et rafraîchir.\n• Tape sur un jour pour ouvrir l\'intra.</string>
 </resources>

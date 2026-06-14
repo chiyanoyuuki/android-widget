@@ -33,6 +33,7 @@ data class DayCell(
     val textColor: Int,
     val border: Border,
     val count: Int,        // nombre d'événements ce jour (badge si > 1)
+    val hasEvents: Boolean = false, // jour cliquable (ouvre le détail)
 )
 
 /**
@@ -119,8 +120,7 @@ object PlanningRepository {
 
     private const val PREFS = "planning_widget"
     private const val KEY_JSON = "cache_json"
-    private const val KEY_TIME = "cache_time"
-    private const val TTL_MS = 30 * 60 * 1000L // 30 min
+    private const val KEY_TIME = "cache_time" // 0 = à rafraîchir, sinon horodatage du dernier fetch
 
     val MONTHS = arrayOf(
         "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -162,20 +162,21 @@ object PlanningRepository {
     }
 
     /**
-     * Renvoie le JSON brut du planning : cache si frais (< TTL), sinon réseau.
-     * En cas d'échec réseau, retombe sur le dernier cache (peut être null).
-     * À appeler depuis un thread worker (réseau).
+     * Renvoie le JSON brut du planning. Réseau UNIQUEMENT si rien en cache, ou
+     * si un rafraîchissement a été demandé via invalidate() (widget « Actualiser »).
+     * Sinon on sert toujours le cache : changer de mois/année ne fetch jamais.
+     * À appeler depuis un thread worker.
      */
     fun loadJson(context: Context): String? {
         val p = prefs(context)
-        val now = System.currentTimeMillis()
         var json = p.getString(KEY_JSON, null)
-        val age = now - p.getLong(KEY_TIME, 0)
-        if (json == null || age > TTL_MS) {
+        val needsRefresh = p.getLong(KEY_TIME, 0) == 0L // 0 = jamais chargé ou invalidé
+        if (json == null || needsRefresh) {
             val fresh = fetch()
             if (fresh != null) {
                 json = fresh
-                p.edit().putString(KEY_JSON, fresh).putLong(KEY_TIME, now).apply()
+                p.edit().putString(KEY_JSON, fresh)
+                    .putLong(KEY_TIME, System.currentTimeMillis()).apply()
             }
         }
         return json
@@ -198,6 +199,19 @@ object PlanningRepository {
         val json = loadJson(context) ?: return emptyList()
         return parseEvents(json)
     }
+
+    /**
+     * Tous les événements d'un jour précis (dd/MM/yyyy), passés ou futurs, pour
+     * l'écran de détail du calendrier. Réseau autorisé (thread worker).
+     */
+    fun eventsOn(context: Context, dateStr: String): List<EventInfo> {
+        val json = loadJson(context) ?: return emptyList()
+        return parseEventsForDate(json, dateStr)
+    }
+
+    /** "dd/MM/yyyy" -> "lundi 15 juin 2026" (ou la chaîne brute si invalide). */
+    fun longDate(dateStr: String): String =
+        if (isValidDate(dateStr)) longDateLabel(dateMillis(dateStr)) else dateStr
 
     private fun fetch(): String? {
         var conn: HttpURLConnection? = null
@@ -357,6 +371,7 @@ object PlanningRepository {
                         textColor = if (Palette.isDark(css)) Palette.TEXT_LIGHT else Palette.TEXT_DARK,
                         border = border,
                         count = list.size,
+                        hasEvents = true,
                     )
                 )
             }
@@ -384,6 +399,7 @@ object PlanningRepository {
     private fun parseEvents(json: String): List<EventInfo> {
         val arr = try { JSONArray(json) } catch (e: Exception) { return emptyList() }
         val todayStart = startOfToday()
+        val nowMin = nowMinutes()
         val out = ArrayList<EventInfo>()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
@@ -393,18 +409,78 @@ object PlanningRepository {
             val date = o.optString("date", "")
             if (isValidDate(date)) {
                 val millis = dateMillis(date)
-                if (millis >= todayStart) out.add(buildEventInfo(o, millis))
+                if (stillUpcoming(millis, todayStart, nowMin, departureMinutes(o))) {
+                    out.add(buildEventInfo(o, millis))
+                }
             }
 
-            // Essai reconstruit depuis essai.date
+            // Essai reconstruit depuis essai.date (heure de l'essai = heure de départ)
             val essai = o.optJSONObject("essai")
             val essaiDate = essai?.optString("date").orEmpty()
             if (essai != null && isValidDate(essaiDate)) {
                 val millis = dateMillis(essaiDate)
-                if (millis >= todayStart) out.add(buildEssaiEvent(o, essai, millis))
+                val endMin = parseHm(essai.optString("heure").trim())
+                if (stillUpcoming(millis, todayStart, nowMin, endMin)) {
+                    out.add(buildEssaiEvent(o, essai, millis))
+                }
             }
         }
         out.sortBy { it.millis }
+        return out
+    }
+
+    /**
+     * Garde l'événement s'il est dans le futur, ou aujourd'hui tant que son heure
+     * de départ (fin de prestation) n'est pas dépassée. Si pas d'heure connue, on
+     * garde l'événement toute la journée.
+     */
+    private fun stillUpcoming(millis: Long, todayStart: Long, nowMin: Int, departMin: Int?): Boolean =
+        when {
+            millis < todayStart -> false
+            millis > todayStart -> true
+            else -> departMin == null || nowMin <= departMin
+        }
+
+    private fun nowMinutes(): Int {
+        val c = Calendar.getInstance()
+        return c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)
+    }
+
+    /** Heure de départ (fin de prestation) d'un mariage en minutes, ou null. */
+    private fun departureMinutes(o: JSONObject): Int? {
+        val p = o.optJSONObject("planning") ?: return null
+        parseHm(p.optString("finprestas").trim())?.let { return it }
+        val invitees = p.optJSONArray("invitees") ?: return null
+        var maxM = Int.MIN_VALUE
+        for (i in 0 until invitees.length()) {
+            val row = invitees.optJSONArray(i) ?: continue
+            for (j in 0 until row.length()) {
+                val m = parseHm(row.optString(j, "")) ?: continue
+                if (m > maxM) maxM = m
+            }
+        }
+        return if (maxM == Int.MIN_VALUE) null else maxM
+    }
+
+    /** Tous les événements (mariages + essais reconstruits) d'une date précise. */
+    private fun parseEventsForDate(json: String, dateStr: String): List<EventInfo> {
+        val arr = try { JSONArray(json) } catch (e: Exception) { return emptyList() }
+        if (!isValidDate(dateStr)) return emptyList()
+        val target = normalize(dateStr)
+        val out = ArrayList<EventInfo>()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            if (o.optString("statut", "") == "essai") continue
+            val date = o.optString("date", "")
+            if (isValidDate(date) && normalize(date) == target) {
+                out.add(buildEventInfo(o, dateMillis(date)))
+            }
+            val essai = o.optJSONObject("essai")
+            val essaiDate = essai?.optString("date").orEmpty()
+            if (essai != null && isValidDate(essaiDate) && normalize(essaiDate) == target) {
+                out.add(buildEssaiEvent(o, essai, dateMillis(essaiDate)))
+            }
+        }
         return out
     }
 
