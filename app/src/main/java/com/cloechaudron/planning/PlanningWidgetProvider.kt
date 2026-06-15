@@ -35,35 +35,45 @@ class PlanningWidgetProvider : AppWidgetProvider() {
         when (intent.action) {
             ACTION_PREV -> if (id != INVALID) {
                 PlanningRepository.changeOffset(context, id, -1)
-                refresh(context, mgr, id, invalidate = false)
+                showMonth(context, mgr, id)
             }
             ACTION_NEXT -> if (id != INVALID) {
                 PlanningRepository.changeOffset(context, id, +1)
-                refresh(context, mgr, id, invalidate = false)
+                showMonth(context, mgr, id)
             }
             ACTION_PREV_YEAR -> if (id != INVALID) {
                 PlanningRepository.changeOffset(context, id, -12)
-                refresh(context, mgr, id, invalidate = false)
+                showMonth(context, mgr, id)
             }
             ACTION_NEXT_YEAR -> if (id != INVALID) {
                 PlanningRepository.changeOffset(context, id, +12)
-                refresh(context, mgr, id, invalidate = false)
+                showMonth(context, mgr, id)
             }
             ACTION_TODAY -> if (id != INVALID) {
                 // Retour au mois courant SANS refetch (l'actualisation passe par le widget 1x1)
                 PlanningRepository.setOffset(context, id, 0)
-                refresh(context, mgr, id, invalidate = false)
+                showMonth(context, mgr, id)
             }
             ACTION_REFRESH -> {
                 PlanningRepository.invalidate(context)
-                for (wid in widgetIds(context, mgr)) refresh(context, mgr, wid, invalidate = false)
+                for (wid in widgetIds(context, mgr)) renderWidget(context, mgr, wid)
             }
         }
     }
 
-    private fun refresh(context: Context, mgr: AppWidgetManager, id: Int, invalidate: Boolean) {
-        if (invalidate) PlanningRepository.invalidate(context)
-        renderWidget(context, mgr, id)
+    /**
+     * Navigation : met à jour UNIQUEMENT l'en-tête (mois / année) via
+     * partiallyUpdateAppWidget, sans retoucher l'adaptateur de la grille, puis
+     * rafraîchit la grille. Re-déclarer l'adaptateur à chaque changement de mois
+     * faisait « sauter » la mise à jour du libellé sur certains launchers (grille
+     * à jour mais nom du mois en retard).
+     */
+    private fun showMonth(context: Context, mgr: AppWidgetManager, id: Int) {
+        val (year, month0) = PlanningRepository.displayedMonth(PlanningRepository.offsetOf(context, id))
+        val views = RemoteViews(context.packageName, R.layout.widget_calendar)
+        views.setTextViewText(R.id.year_label, year.toString())
+        views.setTextViewText(R.id.month_label, PlanningRepository.MONTHS[month0])
+        mgr.partiallyUpdateAppWidget(id, views)
         mgr.notifyAppWidgetViewDataChanged(id, R.id.calendar_grid)
     }
 
