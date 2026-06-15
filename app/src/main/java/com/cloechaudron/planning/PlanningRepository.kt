@@ -213,14 +213,20 @@ object PlanningRepository {
     fun longDate(dateStr: String): String =
         if (isValidDate(dateStr)) longDateLabel(dateMillis(dateStr)) else dateStr
 
+    /** URL avec paramètre anti-cache : évite qu'un cache serveur/CDN renvoie un planning périmé. */
+    private fun freshUrl(): String = "$ENDPOINT&_=${System.currentTimeMillis()}"
+
     private fun fetch(): String? {
         var conn: HttpURLConnection? = null
         return try {
-            conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
+            conn = (URL(freshUrl()).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 15000
                 readTimeout = 15000
+                useCaches = false
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Cache-Control", "no-cache")
+                setRequestProperty("Pragma", "no-cache")
             }
             if (conn.responseCode in 200..299) {
                 conn.inputStream.bufferedReader().use { it.readText() }
@@ -241,11 +247,14 @@ object PlanningRepository {
     fun diagnose(): Diagnostic {
         var conn: HttpURLConnection? = null
         return try {
-            conn = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
+            conn = (URL(freshUrl()).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 15000
                 readTimeout = 15000
+                useCaches = false
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Cache-Control", "no-cache")
+                setRequestProperty("Pragma", "no-cache")
             }
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
