@@ -72,7 +72,8 @@ data class Diagnostic(
 
 /** Un événement à venir, prêt à afficher dans le widget « prochain événement ». */
 data class EventInfo(
-    val millis: Long,        // début de journée, pour le tri
+    val millis: Long,        // début de journée, pour le tri par date
+    val startMin: Int,       // heure de début en minutes (Int.MAX_VALUE si inconnue) -> tri intra-jour
     val dateLabel: String,   // ex. "samedi 12 juillet 2026"
     val typeLabel: String,   // ex. "Mariage réservé"
     val css: String,         // reserve/demande/essai/autre/over/perso (couleur)
@@ -434,7 +435,8 @@ object PlanningRepository {
                 }
             }
         }
-        out.sortBy { it.millis }
+        // Tri par date, puis par heure (essai du matin avant mariage de l'après-midi).
+        out.sortWith(compareBy({ it.millis }, { it.startMin }))
         return out
     }
 
@@ -471,6 +473,21 @@ object PlanningRepository {
         return if (maxM == Int.MIN_VALUE) null else maxM
     }
 
+    /** Heure d'arrivée (plus tôt) d'un mariage en minutes, ou Int.MAX_VALUE si inconnue. */
+    private fun arrivalMinutes(o: JSONObject): Int {
+        val p = o.optJSONObject("planning") ?: return Int.MAX_VALUE
+        val invitees = p.optJSONArray("invitees") ?: return Int.MAX_VALUE
+        var minM = Int.MAX_VALUE
+        for (i in 0 until invitees.length()) {
+            val row = invitees.optJSONArray(i) ?: continue
+            for (j in 0 until row.length()) {
+                val m = parseHm(row.optString(j, "")) ?: continue
+                if (m < minM) minM = m
+            }
+        }
+        return minM
+    }
+
     /** Tous les événements (mariages + essais reconstruits) d'une date précise. */
     private fun parseEventsForDate(json: String, dateStr: String): List<EventInfo> {
         val arr = try { JSONArray(json) } catch (e: Exception) { return emptyList() }
@@ -490,6 +507,7 @@ object PlanningRepository {
                 out.add(buildEssaiEvent(o, essai, dateMillis(essaiDate)))
             }
         }
+        out.sortWith(compareBy({ it.millis }, { it.startMin }))
         return out
     }
 
@@ -502,6 +520,7 @@ object PlanningRepository {
             .filter { it.isNotBlank() }
         return EventInfo(
             millis = millis,
+            startMin = arrivalMinutes(o),
             dateLabel = longDateLabel(millis),
             typeLabel = type,
             css = if (etape == 999) "over" else statut,
@@ -528,6 +547,7 @@ object PlanningRepository {
         }
         return EventInfo(
             millis = millis,
+            startMin = parseHm(heure) ?: Int.MAX_VALUE,
             dateLabel = longDateLabel(millis),
             typeLabel = "Essai",
             css = "essai",

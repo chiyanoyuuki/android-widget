@@ -37,7 +37,9 @@ l'essai de chaque mariage, comme `initData()` de l'app), avec le lieu et l'heure
 Infos affichées : date, type, nom du client, adresse du mariage (domaine,
 adresse, code postal), horaires sur place (`arrivée - fin (nb prestations)`) et
 reste à payer (total « Moi » du devis, hors frais de déplacement, − somme des
-factures).
+factures). Les événements d'une **même journée** sont triés par **heure**
+(essai du matin avant mariage de l'après-midi), et la carte indique le **nombre
+d'événements ce jour-là** s'il y en a plusieurs.
 
 ## Troisième widget — « Actualiser » (1×1)
 

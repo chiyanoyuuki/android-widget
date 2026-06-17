@@ -64,6 +64,15 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/event_daycount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="1dp"
+            android:textColor="@color/weekday"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/event_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

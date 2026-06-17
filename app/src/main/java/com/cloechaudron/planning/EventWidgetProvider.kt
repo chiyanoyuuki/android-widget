@@ -91,6 +91,16 @@ class EventWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.event_content, View.VISIBLE)
             views.setTextViewText(R.id.event_counter, "${index + 1} / ${events.size}")
             views.setTextViewText(R.id.event_date, e.dateLabel)
+
+            // Nombre d'événements le même jour que celui affiché
+            val sameDay = events.count { it.millis == e.millis }
+            if (sameDay > 1) {
+                views.setViewVisibility(R.id.event_daycount, View.VISIBLE)
+                views.setTextViewText(R.id.event_daycount, "$sameDay événements ce jour")
+            } else {
+                views.setViewVisibility(R.id.event_daycount, View.GONE)
+            }
+
             views.setTextViewText(R.id.event_type, e.typeLabel)
             views.setTextColor(R.id.event_type, typeColor(e.css))
             setOrHide(views, R.id.event_name, e.name)
