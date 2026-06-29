@@ -1,87 +1,77 @@
-# Planning Cloé — widget Android
+# Planning Cloé — widgets Android (lecture seule)
 
-Widget d'écran d'accueil (Pixel / Android) qui affiche le **calendrier mensuel**
-du planning IntraCCB, avec **les mêmes couleurs que l'intra** pour les jours
-indisponibles. Permet de voir d'un coup d'œil quels jours sont libres sans ouvrir
-le site.
+Widgets d'écran d'accueil (Pixel / Android) qui reflètent **IntraCCB2** (l'outil
+de gestion de *Cloé Chaudron Beauty*) en **lecture seule** : on consulte le
+planning, les fiches et le bilan, mais **rien n'est modifiable** et **aucun
+document PDF** (devis / facture / planning) n'est généré.
 
-- ◀ ▶ (ligne du bas) : changer de mois ; ◀ ▶ (ligne du haut) : changer d'année
-- Tap sur le **mois** ou l'**année** : revenir au mois courant (sans refetch)
-- Tap sur un **jour avec événements** : ouvre le **détail du jour** (infos,
-  navigation ◀ ▶ entre les événements de la journée, appel/mail, lien intra,
-  bouton Retour)
+> Réécriture complète des widgets, alignée sur le **nouveau** IntraCCB2 (Angular 21).
+> La logique chiffrée (prix, factures, statistiques), les statuts et les couleurs
+> ont été **reportés fidèlement** depuis l'app actuelle — les anciens widgets se
+> basaient sur l'ancien code et ses anciennes teintes.
 
-Les données viennent du même endpoint que l'app :
-`http://cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe`
-(public, pas d'authentification, **HTTP en clair** — voir
-`network_security_config.xml`). Elles sont mises en cache. La récupération se
-fait **uniquement à la demande** : widget « Actualiser » (1×1), tap sur le
-compteur du widget événement, ou bouton dans l'app. **Naviguer** dans le
-calendrier (mois / année) ne déclenche **aucun** fetch.
+## Les widgets
 
-## Deuxième widget — « Prochain événement »
+| Widget | Rôle |
+|---|---|
+| **Calendrier** | Vue mensuelle. Jours « teintés » selon le statut, pastilles « manque essai / planning », anneau du jour, badge multi-événements. Flèches du bas = mois, du haut = année ; tap sur le mois/année = revenir au mois courant ; tap sur un jour = **fiche détail** (lecture seule). |
+| **Prochain événement** | Un événement à venir à la fois (trié par date puis heure). Type, mariée, lieu + cérémonie, **horaires du jour-J** (sur place), **reste à payer**. ◀ ▶ pour parcourir, tap sur le compteur = actualiser, 📞 / ✉ pour appeler / écrire, tap sur la carte = fiche détail. |
+| **Bilan financier** | Indicateurs du tableau de bord : total, encaissé, reste à encaisser, estimation, **net** (après abattement + pourboires), heures travaillées et €/h, compteurs (mariages / demandes / essais / autres / terminés), et un petit **graphe du revenu mensuel** de l'année. Flèches du haut = année, du bas = mois (ou « toute l'année »). |
+| **Actualiser** (1×1) | Force des données fraîches et rafraîchit les trois autres widgets en un tap. |
 
-Un widget séparé (à ajouter comme le premier) qui affiche **un événement à
-venir à la fois**, trié par date (événements passés exclus) :
+La **fiche détail** (ouverte en tapant un jour ou une carte) montre, en lecture
+seule : coordonnées (avec appel / mail), essai, lieu du mariage, horaires du
+jour-J et **récapitulatif chiffré** (qté / prestation / réduc / total, puis
+total / payé / reste à payer, part prestataire et pourboire). On navigue entre
+les événements d'une même journée avec ◀ ▶.
 
-- ◀ ▶ : parcourir les événements. Le compteur central indique la position
-  (`3 / 12`).
-- Tap sur le **compteur** : rafraîchir et revenir au prochain événement.
-- Tap sur le **téléphone** : ouvre le composeur avec le numéro pré-rempli.
-- Tap sur le **mail** : ouvre l'app mail (destinataire + objet « type - date »).
-- Tap ailleurs sur la **carte** : ouvre l'intra.
+## Données
 
-Les **essais** apparaissent comme des cartes à part (reconstruits depuis
-l'essai de chaque mariage, comme `initData()` de l'app), avec le lieu et l'heure.
+Même source que l'app, désormais en **HTTPS** :
 
-Infos affichées : date, type, nom du client, adresse du mariage (domaine,
-adresse, code postal), horaires sur place (`arrivée - fin (nb prestations)`) et
-reste à payer (total « Moi » du devis, hors frais de déplacement, − somme des
-factures). Les événements d'une **même journée** sont triés par **heure**
-(essai du matin avant mariage de l'après-midi), et la carte indique le **nombre
-d'événements ce jour-là** s'il y en a plusieurs.
+```
+https://www.cloechaudronbeauty.com/backend/api/cloeplanning.php?artiste=cloe
+```
 
-## Troisième widget — « Actualiser » (1×1)
+Public, sans authentification. Les données sont **mises en cache** ; le réseau
+n'est sollicité que si rien n'est en cache ou si on demande une actualisation
+(widget « Actualiser », tap sur le compteur d'un widget, ou bouton dans l'app).
+**Naviguer** (mois, année, événement, période du bilan) ne refetch jamais.
 
-Comme les widgets ne se mettent **pas** à jour tout seuls, ce petit bouton 1×1
-(icône ⟳) force des données fraîches et rafraîchit **le calendrier et le widget
-événement** en un seul tap.
-
-## Légende des couleurs (identiques au SCSS de l'intra)
+## Légende des couleurs (charte du nouveau IntraCCB2)
 
 | Couleur | Signification |
 |---|---|
-| 🔵 Bleu `#2972C5` | Mariage réservé (`reserve`) |
-| 🟣 Magenta `#F132E1` | Demande de mariage (`demande`) |
-| 🟠 Ocre `#B67600` | Essai (`essai`) |
-| 🫒 Kaki `#AFA776` | Autre (shooting, tournage, animation…) (`autre`) |
-| 🔴 Rouge | Perso (`perso` / `persofull`) |
-| ⚫ Noir | Prestation terminée (`etape == 999`) |
+| 🔵 `#5B7FB0` | Mariage réservé (`reserve`) |
+| 🟣 `#A96FA3` | Demande de mariage (`demande`) |
+| 🟤 `#B0894E` | Essai (`essai`) |
+| 🫒 `#8F9A5E` | Autre (shooting, tournage…) (`autre`) |
+| 🟢 `#6C8B65` | Perso (`perso` / `persofull`) |
+| ⚪ `#8C8C8C` | Terminé (`etape == 999`) |
 | ⬜ Blanc | Jour libre |
 
-- **Anneau violet** : aujourd'hui
-- **Bord rouge** : mariage réservé sans planning renseigné (`noplanning`)
-- **Bord ocre** : mariage réservé sans essai renseigné (`noessai`)
-- **Pastille** en haut à droite : nombre d'événements ce jour-là (si > 1)
+- **Anneau mauve** `#AA82BA` : aujourd'hui
+- **Pastille ocre** : réservé sans essai renseigné
+- **Pastille rouge** : réservé sans planning renseigné
+- **Badge mauve** (haut-droite) : nombre d'événements ce jour (si > 1)
+- Les jours passés sont atténués
 
 ## Construire l'APK
 
-> ⚠️ Ce projet n'a pas pu être compilé dans l'environnement de génération
-> (pas de SDK Android disponible). Il se construit normalement avec Android
-> Studio, qui fournit le SDK.
+> ⚠️ Le SDK Android n'est pas disponible dans l'environnement de génération :
+> le projet se construit avec **Android Studio** (qui fournit le SDK) ou en
+> ligne de commande si le SDK est installé.
 
-### Option A — Android Studio (le plus simple)
+### Android Studio
 
-1. Ouvrir Android Studio → **Open** → choisir le dossier `android-widget/`.
-2. Laisser la synchronisation Gradle se faire (télécharge AGP 8.5.2, Gradle 8.7,
-   le SDK 34 si besoin).
-3. **Build ▸ Build App Bundle(s) / APK(s) ▸ Build APK(s)**.
-4. L'APK est généré dans `app/build/outputs/apk/debug/app-debug.apk`.
+1. **Open** → choisir le dossier `android-widget/`.
+2. Laisser la synchro Gradle se faire (AGP 8.5.2, Gradle 8.7, SDK 34).
+3. **Build ▸ Build APK(s)** → `app/build/outputs/apk/debug/app-debug.apk`.
 
-### Option B — Ligne de commande
+### Ligne de commande
 
-Prérequis : JDK 17+, et le SDK Android (variable `ANDROID_HOME` ou fichier
-`local.properties` contenant `sdk.dir=/chemin/vers/Android/sdk`).
+Prérequis : JDK 17+, SDK Android (`ANDROID_HOME` ou `local.properties` avec
+`sdk.dir=…`).
 
 ```bash
 cd android-widget
@@ -89,60 +79,50 @@ cd android-widget
 # APK : app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Installer sur le Pixel
+## Installer & ajouter les widgets
 
-### Via ADB (USB, débogage activé)
-
-```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
-
-### Sans PC
-
-Copier le fichier `app-debug.apk` sur le téléphone et l'ouvrir. Autoriser
-« Installer des applications inconnues » pour l'explorateur de fichiers.
-
-## Ajouter le widget
-
-1. Ouvrir l'app **Planning Cloé** une fois (charge le planning et « réveille »
-   l'app).
-2. Appui long sur l'écran d'accueil ▸ **Widgets** ▸ **Planning Cloé**.
-3. Glisser le widget. Il est redimensionnable (4×4 conseillé).
+1. Installer l'APK (`adb install -r …` ou copier le fichier sur le téléphone).
+2. Ouvrir l'app **Planning Cloé** une fois (charge le planning, « réveille » l'app).
+3. Appui long sur l'écran d'accueil ▸ **Widgets** ▸ **Planning Cloé** ▸ glisser
+   le ou les widgets souhaités (redimensionnables).
 
 ## Personnalisation
 
 | Quoi | Où |
 |---|---|
 | Artiste / endpoint API | `ENDPOINT` dans `PlanningRepository.kt` |
-| URL ouverte au clic | `SITE_URL` dans `PlanningWidgetProvider.kt` |
-| Couleurs des statuts | `Palette` dans `PlanningRepository.kt` |
-
-## Limitations
-
-- Le **swipe** pour changer de mois n'est pas possible dans un widget Android :
-  on utilise les flèches ◀ ▶ (limitation de `RemoteViews`).
-- Les widgets ne se rafraîchissent **pas** automatiquement (`updatePeriodMillis`
-  = 0) et la navigation ne refetch pas. La récupération est manuelle : widget
-  « Actualiser » (1×1), tap sur le compteur du widget événement, ou bouton dans
-  l'app. Le cache n'expire plus seul (re-fetch seulement sur invalidate()).
-- Si le réseau échoue **et** qu'aucune donnée n'a jamais été chargée, le widget
-  affiche un message ; sinon il garde le dernier planning connu (hors-ligne OK).
-- L'endpoint étant public, n'importe qui connaissant l'URL peut lire le planning.
-  Si tu veux le restreindre un jour (token, auth), il faudra ajouter l'en-tête
-  correspondant dans `fetch()`.
+| Couleurs des statuts / charte | `Palette` dans `Statuts.kt` et `res/values/colors.xml` |
+| Taux d'abattement du « net » | `TAX_RATE` dans `Stats.kt` (0,24 par défaut) |
 
 ## Structure
 
 ```
-android-widget/
-├── app/src/main/
-│   ├── AndroidManifest.xml
-│   ├── java/com/cloechaudron/planning/
-│   │   ├── PlanningRepository.kt     # fetch + cache + parsing + construction du mois
-│   │   ├── PlanningWidgetProvider.kt # cycle de vie du widget, navigation, clics
-│   │   ├── PlanningWidgetService.kt  # fabrique les 42 cases (GridView)
-│   │   └── MainActivity.kt           # petit écran d'aide
-│   └── res/                          # layouts, drawables, couleurs, icône…
-├── build.gradle.kts / settings.gradle.kts / app/build.gradle.kts
-└── gradle/ (wrapper 8.7)
+android-widget/app/src/main/
+├── AndroidManifest.xml
+├── java/com/cloechaudron/planning/
+│   ├── Domain.kt                 # modèles + parseur JSON (port lecture du mapper)
+│   ├── Pricing.kt                # moteur de prix (port de PricingService)
+│   ├── Stats.kt                  # indicateurs du bilan (port de StatsService)
+│   ├── Statuts.kt                # charte + libellés de statut (palette harmonisée)
+│   ├── Formats.kt                # dates FR + montants
+│   ├── EventCard.kt              # carte événement (lieu, horaires, reste à payer)
+│   ├── PlanningRepository.kt     # fetch HTTPS + cache + sélecteurs + mois
+│   ├── PlanningWidgetProvider.kt # widget calendrier (+ PlanningWidgetService)
+│   ├── PlanningWidgetService.kt  # fabrique les 42 cases (GridView)
+│   ├── EventWidgetProvider.kt    # widget « prochain événement »
+│   ├── BilanWidgetProvider.kt    # widget « bilan financier » (+ graphe)
+│   ├── RefreshWidgetProvider.kt  # widget 1×1 « Actualiser »
+│   ├── DayDetailActivity.kt      # fiche détail (lecture seule)
+│   └── MainActivity.kt           # écran d'aide / diagnostic
+└── res/                          # layouts, drawables, couleurs, widget-infos…
 ```
+
+## Limitations
+
+- Les widgets ne se rafraîchissent **pas** seuls (`updatePeriodMillis = 0`) ; la
+  récupération est manuelle (widget « Actualiser », compteurs, bouton dans l'app).
+- Le **graphe** du bilan est volontairement compact (barres du revenu mensuel de
+  l'année) ; pour l'analyse fine, l'app reste la référence.
+- L'endpoint étant public, n'importe qui connaissant l'URL peut lire le planning.
+- Tout est en **lecture seule** : pour créer / modifier un événement, un devis,
+  une facture ou un planning, utiliser IntraCCB2.

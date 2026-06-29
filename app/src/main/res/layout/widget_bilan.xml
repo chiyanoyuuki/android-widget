@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget « Bilan financier » (lecture seule) : KPIs + petit graphe annuel. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <!-- Année : ◀ | année | ▶ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/bilan_year_prev"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:text="◀"
+            android:textColor="@color/brand"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/bilan_year"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/title"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/bilan_year_next"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:text="▶"
+            android:textColor="@color/brand"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- Période : ◀ | Toute l'année / mois | ▶ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:id="@+id/bilan_month_prev"
+            android:layout_width="40dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="◀"
+            android:textColor="@color/muted"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/bilan_period"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/muted"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/bilan_month_next"
+            android:layout_width="40dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="▶"
+            android:textColor="@color/muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Contenu -->
+    <LinearLayout
+        android:id="@+id/bilan_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- KPIs : 2 colonnes × 3 lignes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_total" />
+                <TextView android:id="@+id/bilan_total" style="@style/KpiValue" />
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_reste" />
+                <TextView android:id="@+id/bilan_reste" style="@style/KpiValue" />
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_net" />
+                <TextView android:id="@+id/bilan_net" style="@style/KpiValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_paid" />
+                <TextView android:id="@+id/bilan_paid" style="@style/KpiValue" />
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_estimate" />
+                <TextView android:id="@+id/bilan_estimate" style="@style/KpiValue" />
+                <TextView style="@style/KpiLabel" android:text="@string/kpi_cash" />
+                <TextView android:id="@+id/bilan_cash" style="@style/KpiValue" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/bilan_hours"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:textColor="@color/text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/bilan_counters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:textColor="@color/muted"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/bilan_chart"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="6dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/kpi_chart" />
+    </LinearLayout>
+
+    <!-- Aucune donnée -->
+    <TextView
+        android:id="@+id/bilan_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/no_data"
+        android:textColor="@color/muted"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</LinearLayout>

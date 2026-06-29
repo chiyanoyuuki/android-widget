@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Réservé mais planning manquant : bord rouge (.noplanning) -->
+<!-- Anneau « aujourd'hui » : 2 px mauve (var(--brand)), comme le calendrier. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@android:color/transparent" />
-    <stroke android:width="2dp" android:color="#FF0000" />
-    <corners android:radius="2dp" />
+    <stroke android:width="2dp" android:color="@color/brand" />
+    <corners android:radius="7dp" />
 </shape>

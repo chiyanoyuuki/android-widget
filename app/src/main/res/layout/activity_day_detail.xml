@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Fiche journée en LECTURE SEULE (sections construites dynamiquement). -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="18dp">
 
         <Button
             android:id="@+id/dd_back"
@@ -22,18 +24,25 @@
             android:layout_height="wrap_content"
             android:paddingTop="12dp"
             android:textColor="@color/title"
-            android:textSize="20sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
-        <!-- Navigation entre les événements de la journée -->
+        <TextView
+            android:id="@+id/dd_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- Navigation entre les événements du jour -->
         <LinearLayout
             android:id="@+id/dd_nav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
+            android:paddingTop="8dp"
             android:visibility="gone">
 
             <Button
@@ -59,49 +68,13 @@
                 android:text="▶" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/dd_type"
+        <!-- Corps : rempli dynamiquement (coordonnées, essai, lieu, horaires, récap) -->
+        <LinearLayout
+            android:id="@+id/dd_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:textColor="@color/required"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/dd_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="4dp"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/dd_details"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:textSize="15sp"
-            android:lineSpacingExtra="3dp" />
-
-        <Button
-            android:id="@+id/dd_phone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
-
-        <Button
-            android:id="@+id/dd_mail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp" />
-
-        <Button
-            android:id="@+id/dd_site"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/open_site" />
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
 
         <TextView
             android:id="@+id/dd_empty"
@@ -109,6 +82,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="16dp"
             android:text="@string/day_empty"
+            android:textColor="@color/muted"
             android:textSize="15sp"
             android:visibility="gone" />
     </LinearLayout>

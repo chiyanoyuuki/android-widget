@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget "prochain événement" : en-tête navigable + carte de détails -->
+<!-- Widget « prochain événement » (lecture seule) : en-tête navigable + carte. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,7 +20,7 @@
             android:layout_height="40dp"
             android:gravity="center"
             android:text="◀"
-            android:textColor="@color/title"
+            android:textColor="@color/brand"
             android:textSize="16sp" />
 
         <TextView
@@ -42,33 +42,32 @@
             android:layout_height="40dp"
             android:gravity="center"
             android:text="▶"
-            android:textColor="@color/title"
+            android:textColor="@color/brand"
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Contenu de l'événement (tap ailleurs -> ouvre l'intra) -->
+    <!-- Contenu (tap ailleurs → fiche détail lecture seule) -->
     <LinearLayout
         android:id="@+id/event_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingTop="6dp">
+        android:paddingTop="4dp">
 
         <TextView
             android:id="@+id/event_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/title"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/event_daycount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="1dp"
-            android:textColor="@color/weekday"
+            android:textColor="@color/muted"
             android:textSize="12sp"
             android:visibility="gone" />
 
@@ -76,7 +75,7 @@
             android:id="@+id/event_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="2dp"
+            android:paddingTop="3dp"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -84,25 +83,41 @@
             android:id="@+id/event_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="2dp"
-            android:paddingBottom="4dp"
-            android:textColor="@color/title"
-            android:textSize="15sp" />
+            android:paddingTop="1dp"
+            android:textColor="@color/text"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/event_details"
+            android:id="@+id/event_lieu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FF333333"
+            android:paddingTop="4dp"
+            android:textColor="@color/text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/event_horaires"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:textColor="@color/muted"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/event_reste"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:textColor="@color/brand_strong"
             android:textSize="13sp"
-            android:lineSpacingExtra="2dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/event_phone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp"
-            android:paddingBottom="2dp"
             android:textColor="@color/required"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -111,7 +126,7 @@
             android:id="@+id/event_mail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="2dp"
+            android:paddingTop="2dp"
             android:textColor="@color/required"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -125,7 +140,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:text="@string/event_empty"
-        android:textColor="@color/weekday"
+        android:textColor="@color/muted"
         android:textSize="13sp"
         android:visibility="gone" />
 </LinearLayout>

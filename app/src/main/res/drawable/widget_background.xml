@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Carte lavande facon theme de l'app (fond / required) -->
+<!-- Carte du widget (surface blanche, bord doux), façon cartes de l'app. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/card_bg" />
-    <stroke android:width="2dp" android:color="@color/card_stroke" />
-    <corners android:radius="18dp" />
+    <stroke android:width="1dp" android:color="@color/card_stroke" />
+    <corners android:radius="20dp" />
 </shape>

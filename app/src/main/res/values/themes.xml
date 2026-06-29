@@ -11,6 +11,23 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Indicateurs du bilan : libellé + valeur -->
+    <style name="KpiLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="KpiValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/title</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!-- Thème appli (une seule petite Activity d'aide) -->
     <style name="Theme.PlanningWidget" parent="@android:style/Theme.Material.Light.NoActionBar" />
 </resources>

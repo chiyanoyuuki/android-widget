@@ -9,39 +9,33 @@ import android.net.Uri
 import android.widget.RemoteViews
 
 /**
- * Petit widget 1x1 « Actualiser ». Un tap force des données fraîches et
- * rafraîchit À LA FOIS le calendrier et le widget « prochain événement ».
- * Les deux autres widgets n'ont plus de mise à jour automatique : c'est ce
- * bouton (ou les taps internes à chaque widget) qui déclenche la mise à jour.
+ * Petit widget 1×1 « Actualiser ». Un tap force des données fraîches et rafraîchit
+ * d'un coup le calendrier, le widget « prochain événement » et le bilan. Les
+ * autres widgets ne se mettent pas à jour seuls (`updatePeriodMillis = 0`).
  */
 class RefreshWidgetProvider : AppWidgetProvider() {
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray,
-    ) {
-        for (id in appWidgetIds) {
+    override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
+        for (id in ids) {
             val views = RemoteViews(context.packageName, R.layout.widget_refresh)
             views.setOnClickPendingIntent(R.id.refresh_root, refreshIntent(context))
-            appWidgetManager.updateAppWidget(id, views)
+            mgr.updateAppWidget(id, views)
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_REFRESH_ALL) {
             PlanningRepository.invalidate(context) // force un re-fetch au prochain load
-            context.sendBroadcast(
-                Intent(context, PlanningWidgetProvider::class.java)
-                    .setAction(PlanningWidgetProvider.ACTION_REFRESH)
-            )
-            context.sendBroadcast(
-                Intent(context, EventWidgetProvider::class.java)
-                    .setAction(EventWidgetProvider.ACTION_REFRESH)
-            )
+            broadcast(context, PlanningWidgetProvider::class.java, PlanningWidgetProvider.ACTION_REFRESH)
+            broadcast(context, EventWidgetProvider::class.java, EventWidgetProvider.ACTION_REFRESH)
+            broadcast(context, BilanWidgetProvider::class.java, BilanWidgetProvider.ACTION_REFRESH)
             return
         }
         super.onReceive(context, intent)
+    }
+
+    private fun broadcast(context: Context, target: Class<*>, action: String) {
+        context.sendBroadcast(Intent(context, target).setAction(action))
     }
 
     private fun refreshIntent(context: Context): PendingIntent {

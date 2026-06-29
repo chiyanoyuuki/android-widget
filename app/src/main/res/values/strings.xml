@@ -1,20 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Planning Cloé</string>
-    <string name="widget_label">Planning Cloé</string>
-    <string name="widget_description">Calendrier mensuel des disponibilités</string>
+
+    <!-- Calendrier -->
+    <string name="widget_label">Calendrier Cloé</string>
+    <string name="widget_description">Calendrier mensuel du planning (lecture seule)</string>
     <string name="no_data">Connexion impossible.\nOuvre l\'app une fois pour charger le planning.</string>
-    <string name="open_site">Ouvrir l\'intra</string>
+
+    <!-- Prochain événement -->
+    <string name="event_widget_label">Prochain événement</string>
+    <string name="event_widget_description">Événements à venir, navigables par flèches (lecture seule)</string>
+    <string name="event_title">Prochain événement</string>
+    <string name="event_empty">Aucun événement à venir.</string>
+
+    <!-- Bilan -->
+    <string name="bilan_widget_label">Bilan Cloé</string>
+    <string name="bilan_widget_description">Bilan financier : revenus, heures, compteurs (lecture seule)</string>
+    <string name="kpi_total">Total</string>
+    <string name="kpi_paid">Encaissé</string>
+    <string name="kpi_reste">Reste à encaisser</string>
+    <string name="kpi_estimate">Estimation</string>
+    <string name="kpi_net">Net</string>
+    <string name="kpi_cash">Liquide</string>
+    <string name="kpi_chart">Revenu mensuel</string>
+
+    <!-- Actualiser -->
+    <string name="refresh_widget_label">Actualiser le planning</string>
+    <string name="refresh_widget_description">Bouton 1×1 : actualise tous les widgets</string>
+
+    <!-- Fiche détail (lecture seule) -->
+    <string name="day_back">‹ Retour</string>
+    <string name="day_empty">Aucun événement ce jour.</string>
+
+    <!-- Écran d'aide -->
     <string name="force_refresh">Forcer la mise à jour des widgets</string>
     <string name="test_connection">Tester la connexion à l\'API</string>
     <string name="test_running">Test en cours…</string>
-    <string name="event_widget_label">Prochain événement</string>
-    <string name="event_widget_description">Événements à venir, navigables par flèches</string>
-    <string name="event_title">Prochain événement</string>
-    <string name="event_empty">Aucun événement à venir.</string>
-    <string name="refresh_widget_label">Actualiser le planning</string>
-    <string name="refresh_widget_description">Bouton 1×1 : met à jour les widgets</string>
-    <string name="day_back">‹ Retour</string>
-    <string name="day_empty">Aucun événement ce jour.</string>
-    <string name="main_help">Ajoute le widget « Planning Cloé » sur ton écran d\'accueil.\n\n• Les jours colorés = indisponibles (mêmes couleurs que l\'intra).\n• Les flèches ◀ ▶ changent de mois.\n• Tape sur le mois pour revenir au mois courant et rafraîchir.\n• Tape sur un jour pour ouvrir l\'intra.</string>
+    <string name="main_help">Ajoute les widgets « Planning Cloé » sur ton écran d\'accueil :\n\n• Calendrier — vue mensuelle (mêmes couleurs que l\'intra). Flèches du bas = mois, du haut = année ; tape un jour pour la fiche.\n• Prochain événement — l\'événement à venir, avec horaires et reste à payer.\n• Bilan — revenus, heures et compteurs.\n• Actualiser (1×1) — recharge les données.\n\nTout est en LECTURE SEULE : rien n\'est modifiable, aucun document PDF.</string>
 </resources>

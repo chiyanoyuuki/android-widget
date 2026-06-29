@@ -1,15 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Charte du nouveau IntraCCB2 (mauve, statuts harmonisés). Les noms hérités
+  (principale / required / title / weekday / card_* / today_ring) sont conservés
+  pour les layouts, mais remappés sur la nouvelle palette.
+-->
 <resources>
-    <!-- Thème de l'app (variables CSS principale / required) -->
+    <!-- Marque -->
+    <color name="brand">#AA82BA</color>
+    <color name="brand_strong">#87528E</color>
+    <color name="brand_deep">#30173D</color>
+    <color name="brand_soft">#ECE4F0</color>
+
+    <!-- Surfaces & texte -->
+    <color name="bg">#F5F1F8</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_2">#FAF7FC</color>
+    <color name="text">#2C2431</color>
+    <color name="muted">#7C7184</color>
+    <color name="border">#E8DFEE</color>
+    <color name="border_strong">#D8CBE0</color>
+
+    <!-- Feedback -->
+    <color name="danger">#B3261E</color>
+    <color name="warning">#B0822F</color>
+    <color name="success">#3F7D52</color>
+
+    <!-- Statuts harmonisés -->
+    <color name="statut_reserve">#5B7FB0</color>
+    <color name="statut_demande">#A96FA3</color>
+    <color name="statut_essai">#B0894E</color>
+    <color name="statut_autre">#8F9A5E</color>
+    <color name="statut_perso">#6C8B65</color>
+    <color name="statut_over">#8C8C8C</color>
+
+    <!-- Alias hérités (layouts) -->
     <color name="principale">#AA82BA</color>
     <color name="required">#87528E</color>
-
-    <!-- Carte du widget -->
-    <color name="card_bg">#F4F1E9F6</color>      <!-- lavande très clair -->
-    <color name="card_stroke">#87528E</color>
-    <color name="title">#5A2E63</color>
-    <color name="weekday">#80503A57</color>
-    <color name="today_ring">#7B1FA2</color>
+    <color name="title">#30173D</color>
+    <color name="weekday">#7C7184</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="card_stroke">#D8CBE0</color>
+    <color name="today_ring">#AA82BA</color>
 
     <!-- Icône -->
     <color name="ic_launcher_background">#87528E</color>

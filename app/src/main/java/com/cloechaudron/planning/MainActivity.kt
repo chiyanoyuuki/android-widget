@@ -2,14 +2,14 @@ package com.cloechaudron.planning
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 
 /**
- * Écran d'accueil minimal : sert surtout à donner une icône de lancement et à
- * "réveiller" l'app après installation. Tout se passe dans le widget.
+ * Écran d'aide minimal : explique les widgets, permet de forcer un
+ * rafraîchissement et de tester la connexion à l'API. Tout l'usage réel se fait
+ * dans les widgets (lecture seule). Aucune édition, aucun document PDF.
  */
 class MainActivity : Activity() {
 
@@ -17,22 +17,10 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.btn_open_site).setOnClickListener {
-            startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(PlanningWidgetProvider.SITE_URL))
-            )
-        }
-
         findViewById<Button>(R.id.btn_refresh).setOnClickListener {
             sendBroadcast(
-                Intent(this, PlanningWidgetProvider::class.java).apply {
-                    action = PlanningWidgetProvider.ACTION_REFRESH
-                }
-            )
-            sendBroadcast(
-                Intent(this, EventWidgetProvider::class.java).apply {
-                    action = EventWidgetProvider.ACTION_REFRESH
-                }
+                Intent(this, RefreshWidgetProvider::class.java)
+                    .setAction(RefreshWidgetProvider.ACTION_REFRESH_ALL),
             )
         }
 

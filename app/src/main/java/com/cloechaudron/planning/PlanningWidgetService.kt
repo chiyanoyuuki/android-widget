@@ -3,12 +3,11 @@ package com.cloechaudron.planning
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 
-/** Fournit la grille des jours (collection GridView) au widget. */
+/** Fournit la grille des jours (collection GridView) au widget calendrier. */
 class PlanningWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
         val id = intent.getIntExtra(
@@ -34,16 +33,14 @@ class CalendarFactory(
         cells = emptyList()
     }
 
-    /** Appelé sur un thread worker -> le réseau est autorisé ici. */
+    /** Thread worker → le réseau est autorisé ici. */
     override fun onDataSetChanged() {
-        val offset = PlanningRepository.offsetOf(context, appWidgetId)
-        val (y, m) = PlanningRepository.displayedMonth(offset)
+        val (y, m) = PlanningRepository.displayedMonth(PlanningRepository.offsetOf(context, appWidgetId))
         year = y
         month0 = m
-        val events = PlanningRepository.load(context)
-        // Si aucune donnée n'a jamais pu être chargée -> liste vide -> vue "empty".
+        val entries = PlanningRepository.calendarEntries(PlanningRepository.journees(context))
         cells = if (PlanningRepository.hasCache(context)) {
-            PlanningRepository.buildMonth(events, year, month0)
+            PlanningRepository.buildMonth(entries, year, month0)
         } else {
             emptyList()
         }
@@ -56,24 +53,24 @@ class CalendarFactory(
         val rv = RemoteViews(context.packageName, R.layout.widget_cell)
 
         if (cell.day == 0) {
-            // Case vide (hors mois)
             rv.setTextViewText(R.id.cell_text, "")
-            rv.setInt(R.id.cell_fill, "setBackgroundColor", Color.TRANSPARENT)
-            rv.setViewVisibility(R.id.cell_border, View.GONE)
+            rv.setViewVisibility(R.id.cell_fill, View.GONE)
+            rv.setViewVisibility(R.id.cell_stroke, View.GONE)
+            rv.setViewVisibility(R.id.cell_today, View.GONE)
             rv.setViewVisibility(R.id.cell_badge, View.GONE)
+            rv.setViewVisibility(R.id.cell_essai, View.GONE)
+            rv.setViewVisibility(R.id.cell_planning, View.GONE)
             return rv
         }
 
+        rv.setViewVisibility(R.id.cell_fill, View.VISIBLE)
+        rv.setViewVisibility(R.id.cell_stroke, View.VISIBLE)
+        rv.setInt(R.id.cell_fill, "setColorFilter", cell.fillColor)
+        rv.setInt(R.id.cell_stroke, "setColorFilter", cell.strokeColor)
+        rv.setViewVisibility(R.id.cell_today, if (cell.isToday) View.VISIBLE else View.GONE)
+
         rv.setTextViewText(R.id.cell_text, cell.day.toString())
         rv.setTextColor(R.id.cell_text, cell.textColor)
-        rv.setInt(R.id.cell_fill, "setBackgroundColor", cell.fillColor)
-
-        when (cell.border) {
-            Border.NONE -> rv.setViewVisibility(R.id.cell_border, View.GONE)
-            Border.TODAY -> setBorder(rv, R.drawable.cell_border_today)
-            Border.NOPLANNING -> setBorder(rv, R.drawable.cell_border_noplanning)
-            Border.NOESSAI -> setBorder(rv, R.drawable.cell_border_noessai)
-        }
 
         if (cell.count > 1) {
             rv.setViewVisibility(R.id.cell_badge, View.VISIBLE)
@@ -82,9 +79,10 @@ class CalendarFactory(
             rv.setViewVisibility(R.id.cell_badge, View.GONE)
         }
 
-        // Seuls les jours avec événements sont cliquables -> ouvre le détail du jour
-        // (le template, défini par le provider, lance DayDetailActivity ; la date
-        // est fournie par ce fill-in).
+        rv.setViewVisibility(R.id.cell_essai, if (cell.missingEssai) View.VISIBLE else View.GONE)
+        rv.setViewVisibility(R.id.cell_planning, if (cell.missingPlanning) View.VISIBLE else View.GONE)
+
+        // Seuls les jours avec événements ouvrent le détail (date via fill-in).
         if (cell.hasEvents) {
             val dateStr = String.format("%02d/%02d/%04d", cell.day, month0 + 1, year)
             rv.setOnClickFillInIntent(
@@ -93,11 +91,6 @@ class CalendarFactory(
             )
         }
         return rv
-    }
-
-    private fun setBorder(rv: RemoteViews, drawable: Int) {
-        rv.setViewVisibility(R.id.cell_border, View.VISIBLE)
-        rv.setInt(R.id.cell_border, "setBackgroundResource", drawable)
     }
 
     override fun getLoadingView(): RemoteViews? = null
